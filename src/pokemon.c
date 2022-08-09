@@ -5446,6 +5446,11 @@ u8 GetNatureFromPersonality(u32 personality)
     return personality % NUM_NATURES;
 }
 
+s8 *GetNatureModifier(struct Pokemon *mon)
+{
+    return (s8 *)gNatureStatTable[GetNature(mon)];
+}
+
 u16 GetEvolutionTargetSpecies(struct Pokemon *mon, u8 mode, u16 evolutionItem)
 {
     int i;

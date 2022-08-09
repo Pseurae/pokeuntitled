@@ -164,6 +164,7 @@ static EWRAM_DATA struct PokemonSummaryScreenData
         u8 sanity; // 0x35
         u8 OTName[17]; // 0x36
         u32 OTID; // 0x48
+        s8 *natureModifier;
     } summary;
     u16 bgTilemapBuffers[PSS_PAGE_COUNT][2][0x400];
     u8 mode;
@@ -722,8 +723,8 @@ static void (*const sTextPrinterTasks[])(u8 taskId) =
 
 static const u8 sMemoNatureTextColor[] = _("{COLOR LIGHT_RED}{SHADOW GREEN}");
 static const u8 sMemoMiscTextColor[] = _("{COLOR WHITE}{SHADOW DARK_GRAY}"); // This is also affected by palettes, apparently
-static const u8 sStatsLeftColumnLayout[] = _("{DYNAMIC 0}/{DYNAMIC 1}\n{DYNAMIC 2}\n{DYNAMIC 3}");
-static const u8 sStatsRightColumnLayout[] = _("{DYNAMIC 0}\n{DYNAMIC 1}\n{DYNAMIC 2}");
+static const u8 sStatsLeftColumnLayout[] = _("{DYNAMIC 0}/{DYNAMIC 1}\n{DYNAMIC 2}{DYNAMIC 3}\n{DYNAMIC 4}{DYNAMIC 5}");
+static const u8 sStatsRightColumnLayout[] = _("{DYNAMIC 0}{DYNAMIC 1}\n{DYNAMIC 2}{DYNAMIC 3}\n{DYNAMIC 4}{DYNAMIC 5}");
 static const u8 sMovesPPLayout[] = _("{PP}{DYNAMIC 0}/{DYNAMIC 1}");
 
 #define TAG_MOVE_SELECTOR 30000
@@ -1406,9 +1407,11 @@ static bool8 ExtractMonDataToSummaryStruct(struct Pokemon *mon)
         sum->ppBonuses = GetMonData(mon, MON_DATA_PP_BONUSES);
         break;
     case 2:
+        sum->nature = GetNature(mon);
+        sum->natureModifier = GetNatureModifier(mon);
+
         if (sMonSummaryScreen->monList.mons == gPlayerParty || sMonSummaryScreen->mode == SUMMARY_MODE_BOX || sMonSummaryScreen->unk40EF == TRUE)
         {
-            sum->nature = GetNature(mon);
             sum->currentHP = GetMonData(mon, MON_DATA_HP);
             sum->maxHP = GetMonData(mon, MON_DATA_MAX_HP);
             sum->atk = GetMonData(mon, MON_DATA_ATK);
@@ -1419,7 +1422,6 @@ static bool8 ExtractMonDataToSummaryStruct(struct Pokemon *mon)
         }
         else
         {
-            sum->nature = GetNature(mon);
             sum->currentHP = GetMonData(mon, MON_DATA_HP);
             sum->maxHP = GetMonData(mon, MON_DATA_MAX_HP);
             sum->atk = GetMonData(mon, MON_DATA_ATK2);
@@ -3352,29 +3354,49 @@ static void PrintRibbonCount(void)
     PrintTextOnWindow(AddWindowFromTemplateList(sPageSkillsTemplate, PSS_DATA_WINDOW_SKILLS_RIBBON_COUNT), text, x, 1, 0, 0);
 }
 
+static const u8 sNatureColorNeutral[] = _("{COLOR 01}");
+static const u8 sNatureColorUp[] = _("{COLOR 08}");
+static const u8 sNatureColorDown[] = _("{COLOR 08}");
+
+static const u8 *GetNatureStatColor(int i)
+{
+    switch (sMonSummaryScreen->summary.natureModifier[i - 1])
+    {
+        case 1:
+            return sNatureColorUp;
+        case -1:
+            return sNatureColorDown;
+        case 0:
+        default:
+            return sNatureColorNeutral;
+    }
+}
+
 static void BufferLeftColumnStats(void)
 {
     u8 *currentHPString = Alloc(8);
     u8 *maxHPString = Alloc(8);
-    u8 *attackString = Alloc(8);
-    u8 *defenseString = Alloc(8);
 
     ConvertIntToDecimalStringN(currentHPString, sMonSummaryScreen->summary.currentHP, STR_CONV_MODE_RIGHT_ALIGN, 3);
     ConvertIntToDecimalStringN(maxHPString, sMonSummaryScreen->summary.maxHP, STR_CONV_MODE_RIGHT_ALIGN, 3);
-    ConvertIntToDecimalStringN(attackString, sMonSummaryScreen->summary.atk, STR_CONV_MODE_RIGHT_ALIGN, 7);
-    ConvertIntToDecimalStringN(defenseString, sMonSummaryScreen->summary.def, STR_CONV_MODE_RIGHT_ALIGN, 7);
+    ConvertIntToDecimalStringN(gStringVar1, sMonSummaryScreen->summary.atk, STR_CONV_MODE_RIGHT_ALIGN, 7);
+    ConvertIntToDecimalStringN(gStringVar2, sMonSummaryScreen->summary.def, STR_CONV_MODE_RIGHT_ALIGN, 7);
 
     DynamicPlaceholderTextUtil_Reset();
+
     DynamicPlaceholderTextUtil_SetPlaceholderPtr(0, currentHPString);
     DynamicPlaceholderTextUtil_SetPlaceholderPtr(1, maxHPString);
-    DynamicPlaceholderTextUtil_SetPlaceholderPtr(2, attackString);
-    DynamicPlaceholderTextUtil_SetPlaceholderPtr(3, defenseString);
+
+    DynamicPlaceholderTextUtil_SetPlaceholderPtr(2, GetNatureStatColor(STAT_ATK));
+    DynamicPlaceholderTextUtil_SetPlaceholderPtr(3, gStringVar1);
+
+    DynamicPlaceholderTextUtil_SetPlaceholderPtr(4, GetNatureStatColor(STAT_DEF));
+    DynamicPlaceholderTextUtil_SetPlaceholderPtr(5, gStringVar2);
+
     DynamicPlaceholderTextUtil_ExpandPlaceholders(gStringVar4, sStatsLeftColumnLayout);
 
     Free(currentHPString);
     Free(maxHPString);
-    Free(attackString);
-    Free(defenseString);
 }
 
 static void PrintLeftColumnStats(void)
@@ -3389,9 +3411,16 @@ static void BufferRightColumnStats(void)
     ConvertIntToDecimalStringN(gStringVar3, sMonSummaryScreen->summary.speed, STR_CONV_MODE_RIGHT_ALIGN, 3);
 
     DynamicPlaceholderTextUtil_Reset();
-    DynamicPlaceholderTextUtil_SetPlaceholderPtr(0, gStringVar1);
-    DynamicPlaceholderTextUtil_SetPlaceholderPtr(1, gStringVar2);
-    DynamicPlaceholderTextUtil_SetPlaceholderPtr(2, gStringVar3);
+
+    DynamicPlaceholderTextUtil_SetPlaceholderPtr(0, GetNatureStatColor(STAT_SPATK));
+    DynamicPlaceholderTextUtil_SetPlaceholderPtr(1, gStringVar1);
+
+    DynamicPlaceholderTextUtil_SetPlaceholderPtr(2, GetNatureStatColor(STAT_SPDEF));
+    DynamicPlaceholderTextUtil_SetPlaceholderPtr(3, gStringVar2);
+
+    DynamicPlaceholderTextUtil_SetPlaceholderPtr(4, GetNatureStatColor(STAT_SPEED));
+    DynamicPlaceholderTextUtil_SetPlaceholderPtr(5, gStringVar3);
+
     DynamicPlaceholderTextUtil_ExpandPlaceholders(gStringVar4, sStatsRightColumnLayout);
 }
 
