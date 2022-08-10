@@ -3355,7 +3355,7 @@ static void PrintRibbonCount(void)
 }
 
 static const u8 sNatureColorNeutral[] = _("{COLOR 01}");
-static const u8 sNatureColorUp[] = _("{COLOR 08}");
+static const u8 sNatureColorUp[] = _("{COLOR 05}");
 static const u8 sNatureColorDown[] = _("{COLOR 08}");
 
 static const u8 *GetNatureStatColor(int i)
