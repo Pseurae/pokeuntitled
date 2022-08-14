@@ -600,8 +600,8 @@ static void TMCase_ItemPrintFunc(u8 windowId, u32 itemId, u8 y)
     }
 }
 
-const u8 gText_TMCaseWillBePutAway[] = _("The TM CASE will be\nput away.");
-const u8 gText_TMCase[] = _("TM CASE");
+const u8 gText_TMCaseWillBePutAway[] = _("The TM Case will be\nput away.");
+const u8 gText_TMCase[] = _("TM Case");
 
 static void TMCase_MoveCursor_UpdatePrintedDescription(s32 itemIndex)
 {

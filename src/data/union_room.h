@@ -437,15 +437,15 @@ static const u8 *const sTradeReactionTexts[GENDER_COUNT][4] = {
 ALIGNED(4) static const u8 sText_XCheckedTradingBoard[] = _("{STR_VAR_1} checked the\nTrading Board.\p");
 ALIGNED(4) static const u8 sText_RegisterMonAtTradingBoard[] = _("Welcome to the Trading Board.\pYou may register your Pokémon\nand offer it up for a trade.\pWould you like to register one of\nyour Pokémon?");
 ALIGNED(4) static const u8 sText_TradingBoardInfo[] = _("This Trading Board is used for\n"
-                                                        "offering a POKéMON for a trade.\p"
+                                                        "offering a Pokémon for a trade.\p"
                                                         "All you need to do is register a\n"
-                                                        "POKéMON for a trade.\p"
-                                                        "Another TRAINER may offer a party\n"
-                                                        "POKéMON in return for the trade.\p"
-                                                        "We hope you will register POKéMON\n"
+                                                        "Pokémon for a trade.\p"
+                                                        "Another Trainer may offer a party\n"
+                                                        "Pokémon in return for the trade.\p"
+                                                        "We hope you will register Pokémon\n"
                                                         "and trade them with many, many\l"
-                                                        "other TRAINERS.\p"
-                                                        "Would you like to register one of\nyour POKéMON?");
+                                                        "other Trainers.\p"
+                                                        "Would you like to register one of\nyour Pokémon?");
 ALIGNED(4) static const u8 sText_ThankYouForRegistering[] = _("We have registered your Pokémon for\ntrade on the Trading Board.\pThank you for using this service!\p"); // unused
 ALIGNED(4) static const u8 sText_NobodyHasRegistered[] = _("Nobody has registered any Pokémon\nfor trade on the Trading Board.\p\n"); // unused
 ALIGNED(4) static const u8 sText_ChooseRequestedMonType[] = _("Please choose the type of Pokémon\nthat you would like in the trade.\n");

@@ -21,11 +21,11 @@ const u8 gText_NamingScreenKeyboard_Symbols1[] = _("{CLEAR 12}!{CLEAR 17}?{CLEAR
 const u8 gText_NamingScreenKeyboard_Symbols2[] = _("{CLEAR 11}…{CLEAR 16}“{CLEAR 16}”{CLEAR 18}‘{CLEAR 19}'{CLEAR 18} ");
 
 // Union Room Chat keyboard
-const u8 gText_UnionRoomChatKeyboard_ABCDE[] = _("ABCDE");
-const u8 gText_UnionRoomChatKeyboard_FGHIJ[] = _("FGHIJ");
-const u8 gText_UnionRoomChatKeyboard_KLMNO[] = _("KLMNO");
-const u8 gText_UnionRoomChatKeyboard_PQRST[] = _("PQRST");
-const u8 gText_UnionRoomChatKeyboard_UVWXY[] = _("UVWXY");
+const u8 gText_UnionRoomChatKeyboard_ABCDE[] = _("Abcde");
+const u8 gText_UnionRoomChatKeyboard_FGHIJ[] = _("Fghij");
+const u8 gText_UnionRoomChatKeyboard_KLMNO[] = _("Klmno");
+const u8 gText_UnionRoomChatKeyboard_PQRST[] = _("Pqrst");
+const u8 gText_UnionRoomChatKeyboard_UVWXY[] = _("Uvwxy");
 const u8 gText_UnionRoomChatKeyboard_Z[] = _("Z    ");
 const u8 gText_UnionRoomChatKeyboard_01234Upper[] = _("01234");
 const u8 gText_UnionRoomChatKeyboard_56789Upper[] = _("56789");

@@ -294,10 +294,10 @@ static const u8 sKeyboardChars[KBPAGE_COUNT][KBROW_COUNT][KBCOL_COUNT] = {
         __("tuvwxyz "),
     },
     [KEYBOARD_LETTERS_UPPER] = {
-        __("ABCDEF ."),
-        __("GHIJKL ,"),
-        __("MNOPQRS "),
-        __("TUVWXYZ "),
+        __("Abcdef ."),
+        __("Ghijkl ,"),
+        __("Mnopqrs "),
+        __("Tuvwxyz "),
     },
     [KEYBOARD_SYMBOLS] = {
         __("01234   "),
