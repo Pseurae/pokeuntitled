@@ -1313,10 +1313,12 @@ static u8 GetSwitchBagPocketDirection(void)
 
 static void ChangeBagPocketId(u8 *bagPocketId, s8 deltaBagPocketId)
 {
-    do {
+    if (deltaBagPocketId == MENU_CURSOR_DELTA_RIGHT && *bagPocketId == POCKETS_COUNT - 1)
+        *bagPocketId = 0;
+    else if (deltaBagPocketId == MENU_CURSOR_DELTA_LEFT && *bagPocketId == 0)
+        *bagPocketId = POCKETS_COUNT - 1;
+    else
         *bagPocketId += deltaBagPocketId;
-    } while (*bagPocketId == TMHM_POCKET || *bagPocketId == BERRIES_POCKET);
-    *bagPocketId %= POCKETS_COUNT;
 }
 
 static void SwitchBagPocket(u8 taskId, s16 deltaBagPocketId, bool16 skipEraseList)

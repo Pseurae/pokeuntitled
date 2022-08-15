@@ -161,7 +161,8 @@ static const struct BgTemplate sBGTemplates[] = {
         .paletteMode = 0,
         .priority = 1,
         .baseTile = 0x000
-    }, {
+    }, 
+    {
         .bg = 1,
         .charBaseIndex = 0,
         .mapBaseIndex = 30,
@@ -169,7 +170,8 @@ static const struct BgTemplate sBGTemplates[] = {
         .paletteMode = 0,
         .priority = 0,
         .baseTile = 0x000
-    }, {
+    }, 
+    {
         .bg = 2,
         .charBaseIndex = 0,
         .mapBaseIndex = 29,
@@ -214,21 +216,45 @@ static const u8 sTextColors[][3] = {
 static const struct WindowTemplate sWindowTemplates[] = {
     {0x00, 0x0a, 0x01, 0x13, 0x0a, 0x0f, 0x0081},
     {0x00, 0x0c, 0x0c, 0x12, 0x08, 0x0a, 0x013f},
-    {0x01, 0x05, 0x0f, 0x0f, 0x04, 0x0d, 0x01f9},
+    {0x01, 0x05, 0x0f, 0x0f, 0x04, 15, 0x01f9}, //
     {0x00, 0x00, 0x01, 0x0a, 0x02, 0x0f, 0x0235},
     {0x00, 0x01, 0x0d, 0x05, 0x06, 0x0c, 0x0249},
     {0x00, 0x07, 0x0d, 0x05, 0x06, 0x0c, 0x0267},
     {0x01, 0x02, 0x0f, 0x1a, 0x04, 0x0b, 0x0285},
     {0x01, 0x11, 0x09, 0x0c, 0x04, 0x0f, 0x02ed},
-    {0x01, 0x01, 0x01, 0x08, 0x03, 0x0d, 0x031d},
+    {0x01, 0x01, 0x01, 10, 2, 15, 0x031d},
     DUMMY_WIN_TEMPLATE
 };
 
-static const struct WindowTemplate sYesNoWindowTemplate = {0x01, 0x15, 0x09, 0x06, 0x04, 0x0f, 0x0335};
+static const struct WindowTemplate sYesNoWindowTemplate = {
+    .bg = 1, 
+    .tilemapLeft = 21, 
+    .tilemapTop = 9, 
+    .width = 6, 
+    .height = 4, 
+    .paletteNum = 15, 
+    .baseBlock = 463
+};
 
 static const struct WindowTemplate sTMContextWindowTemplates[] = {
-    {0x01, 0x16, 0x0d, 0x07, 0x06, 0x0f, 0x01cf},
-    {0x01, 0x16, 0x0f, 0x07, 0x04, 0x0f, 0x01cf}
+    {
+        .bg = 1, 
+        .tilemapLeft = 24, 
+        .tilemapTop = 13, 
+        .width = 5, 
+        .height = 6, 
+        .paletteNum = 15, 
+        .baseBlock = 463
+    },
+    {
+        .bg = 1, 
+        .tilemapLeft = 24, 
+        .tilemapTop = 13, 
+        .width = 5, 
+        .height = 4, 
+        .paletteNum = 15, 
+        .baseBlock = 463
+    }
 };
 
 static const struct OamData sTMSpriteOamData = {
@@ -912,14 +938,14 @@ static void TMHMContextMenuAction_Give(u8 taskId)
 
 static void PrintError_ThereIsNoPokemon(u8 taskId)
 {
-    TMCase_PrintMessageWithFollowupTask(taskId, FONT_SHORT, gText_NoPokemon, Task_WaitButtonAfterErrorPrint);
+    TMCase_PrintMessageWithFollowupTask(taskId, FONT_NORMAL, gText_NoPokemon, Task_WaitButtonAfterErrorPrint);
 }
 
 static void PrintError_ItemCantBeHeld(u8 taskId)
 {
     CopyItemName(gSpecialVar_ItemId, gStringVar1);
     StringExpandPlaceholders(gStringVar4, gText_Var1CantBeHeld);
-    TMCase_PrintMessageWithFollowupTask(taskId, FONT_SHORT, gStringVar4, Task_WaitButtonAfterErrorPrint);
+    TMCase_PrintMessageWithFollowupTask(taskId, FONT_NORMAL, gStringVar4, Task_WaitButtonAfterErrorPrint);
 }
 
 static void Task_WaitButtonAfterErrorPrint(u8 taskId)
@@ -1003,7 +1029,7 @@ static void Task_SelectTMAction_FromSellMenu(u8 taskId)
     {
         CopyItemName(gSpecialVar_ItemId, gStringVar1);
         StringExpandPlaceholders(gStringVar4, gText_CantBuyKeyItem);
-        TMCase_PrintMessageWithFollowupTask(taskId, FONT_SHORT_COPY_3, gStringVar4, Subtask_CloseContextMenuAndReturnToMain);
+        TMCase_PrintMessageWithFollowupTask(taskId, FONT_NORMAL, gStringVar4, Subtask_CloseContextMenuAndReturnToMain);
     }
     else
     {
@@ -1019,7 +1045,7 @@ static void Task_SelectTMAction_FromSellMenu(u8 taskId)
                 data[2] = 99;
             CopyItemName(gSpecialVar_ItemId, gStringVar1);
             StringExpandPlaceholders(gStringVar4, gText_HowManyToSell);
-            TMCase_PrintMessageWithFollowupTask(taskId, FONT_SHORT_COPY_3, gStringVar4, Task_InitQuantitySelectUI);
+            TMCase_PrintMessageWithFollowupTask(taskId, FONT_NORMAL, gStringVar4, Task_InitQuantitySelectUI);
         }
     }
 }
@@ -1030,7 +1056,7 @@ static void Task_AskConfirmSaleWithAmount(u8 taskId)
 
     ConvertIntToDecimalStringN(gStringVar3, ItemId_GetPrice(BagGetItemIdByPocketPosition(POCKET_TM_HM, data[1])) / 2 * data[8], STR_CONV_MODE_LEFT_ALIGN, 6);
     StringExpandPlaceholders(gStringVar4, gText_ICanPayVar1);
-    TMCase_PrintMessageWithFollowupTask(taskId, FONT_SHORT_COPY_3, gStringVar4, Task_PlaceYesNoBox);
+    TMCase_PrintMessageWithFollowupTask(taskId, FONT_NORMAL, gStringVar4, Task_PlaceYesNoBox);
 }
 
 static void Task_PlaceYesNoBox(u8 taskId)
@@ -1043,6 +1069,7 @@ static void Task_SaleOfTMsCanceled(u8 taskId)
     s16 * data = gTasks[taskId].data;
 
     ClearStdWindowAndFrameToTransparent(8, FALSE);
+    RemoveMoneyLabelObject();
     ClearDialogWindowAndFrameToTransparent(6, FALSE);
     PutWindowTilemap(0);
     PutWindowTilemap(1);
@@ -1102,6 +1129,7 @@ static void Task_QuantitySelect_HandleInput(u8 taskId)
         PlaySE(SE_SELECT);
         ClearStdWindowAndFrameToTransparent(7, FALSE);
         ClearStdWindowAndFrameToTransparent(8, FALSE);
+        RemoveMoneyLabelObject();
         ClearDialogWindowAndFrameToTransparent(6, FALSE);
         PutWindowTilemap(3);
         PutWindowTilemap(0);
@@ -1120,10 +1148,10 @@ static void Task_PrintSaleConfirmedText(u8 taskId)
 
     PutWindowTilemap(0);
     ScheduleBgCopyTilemapToVram(0);
-    CopyItemName(gSpecialVar_ItemId, gStringVar1);
-    ConvertIntToDecimalStringN(gStringVar3, ItemId_GetPrice(BagGetItemIdByPocketPosition(POCKET_TM_HM, data[1])) / 2 * data[8], STR_CONV_MODE_LEFT_ALIGN, 6);
+    CopyItemName(gSpecialVar_ItemId, gStringVar2);
+    ConvertIntToDecimalStringN(gStringVar1, ItemId_GetPrice(BagGetItemIdByPocketPosition(POCKET_TM_HM, data[1])) / 2 * data[8], STR_CONV_MODE_LEFT_ALIGN, 6);
     StringExpandPlaceholders(gStringVar4, gText_TurnedOverVar1ForVar2);
-    TMCase_PrintMessageWithFollowupTask(taskId, FONT_SHORT, gStringVar4, Task_DoSaleOfTMs);
+    TMCase_PrintMessageWithFollowupTask(taskId, FONT_NORMAL, gStringVar4, Task_DoSaleOfTMs);
 }
 
 static void Task_DoSaleOfTMs(u8 taskId)
@@ -1150,6 +1178,7 @@ static void Task_AfterSale_ReturnToList(u8 taskId)
     {
         PlaySE(SE_SELECT);
         ClearStdWindowAndFrameToTransparent(8, FALSE);
+        RemoveMoneyLabelObject();
         ClearDialogWindowAndFrameToTransparent(6, FALSE);
         PutWindowTilemap(1);
         PutWindowTilemap(3);
@@ -1172,8 +1201,10 @@ static void InitWindowTemplatesAndPals(void)
     LoadPalette(sPal3Override, 0xF6, 0x04);
     LoadPalette(sPal3Override, 0xD6, 0x04);
     ListMenuLoadStdPalAt(0xc0, 0x01);
+
     for (i = 0; i < 9; i++)
         FillWindowPixelBuffer(i, 0x00);
+
     PutWindowTilemap(0);
     PutWindowTilemap(1);
     PutWindowTilemap(3);
@@ -1268,12 +1299,13 @@ static void PlaceHMTileInWindow(u8 windowId, u8 x, u8 y)
 
 static void HandlePrintMoneyOnHand(void)
 {
-    PrintMoneyAmountInMoneyBoxWithBorder(8, 0x78, 0xD, GetMoney(&gSaveBlock1Ptr->money));
+    AddMoneyLabelObject(19, 11);
+    PrintMoneyAmountInMoneyBoxWithBorder(8, 0x78, 0x0D, GetMoney(&gSaveBlock1Ptr->money));
 }
 
 static void HandleCreateYesNoMenu(u8 taskId, const struct YesNoFuncTable *ptrs)
 {
-    CreateYesNoMenuWithCallbacks(taskId, &sYesNoWindowTemplate, FONT_SHORT, 0, 2, 0x5B, 0x0E, ptrs);
+    CreateYesNoMenuWithCallbacks(taskId, &sYesNoWindowTemplate, FONT_SHORT, 0, 2, 0x78, 0x0E, ptrs);
 }
 
 static u8 AddTMContextMenu(u8 * a0, u8 a1)
@@ -1281,7 +1313,7 @@ static u8 AddTMContextMenu(u8 * a0, u8 a1)
     if (*a0 == 0xFF)
     {
         *a0 = AddWindow(&sTMContextWindowTemplates[a1]);
-        TMCase_SetWindowBorder1(*a0);
+        TMCase_SetWindowBorder2(*a0);
         ScheduleBgCopyTilemapToVram(0);
     }
     return *a0;
