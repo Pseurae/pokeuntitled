@@ -396,6 +396,9 @@ static const u8 sFontColorTable[][3] = {
     [COLORID_TMHM_INFO]   = {TEXT_COLOR_TRANSPARENT, TEXT_DYNAMIC_COLOR_5,  TEXT_DYNAMIC_COLOR_1}
 };
 
+static const u8 sTextTMCaseColor[] = _("{COLOR DYNAMIC_COLOR4}");
+static const u8 sTextRegularColor[] = _("{COLOR WHITE}");
+
 static const struct WindowTemplate sDefaultBagWindows[] =
 {
     [WIN_ITEM_LIST] = {
@@ -929,7 +932,12 @@ static void GetItemName(s8 *dest, u16 itemId)
         StringExpandPlaceholders(dest, gText_NumberItem_TMBerry);
         break;
     default:
-        CopyItemName(itemId, dest);
+        if (itemId == ITEM_TM_CASE)
+            StringCopy(dest, sTextTMCaseColor);
+        else
+            StringCopy(dest, sTextRegularColor);
+        StringAppend(dest, ItemId_GetName(itemId));
+        // CopyItemName(itemId, dest);
         break;
     }
 }
