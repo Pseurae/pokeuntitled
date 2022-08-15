@@ -3,7 +3,7 @@
 
 struct TMCaseControl
 {
-    void (* savedCallback)(void);
+    void (*savedCallback)(void);
     u8 tmCaseMenuType;
     u8 unk_05;
     u8 unk_06;

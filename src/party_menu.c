@@ -60,6 +60,7 @@
 #include "task.h"
 #include "text.h"
 #include "text_window.h"
+#include "tm_case.h"
 #include "trade.h"
 #include "union_room.h"
 #include "window.h"
@@ -400,6 +401,7 @@ static bool8 SetUpFieldMove_Surf(void);
 static bool8 SetUpFieldMove_Fly(void);
 static bool8 SetUpFieldMove_Waterfall(void);
 static bool8 SetUpFieldMove_Dive(void);
+static void CB2_ReturnToTMCaseMenu(void);
 
 // static const data
 #include "data/pokemon/tutor_learnsets.h"
@@ -4146,6 +4148,11 @@ static void LoadPartyMenuAilmentGfx(void)
     LoadCompressedSpritePalette(&sSpritePalette_StatusIcons);
 }
 
+static void CB2_ReturnToTMCaseMenu(void)
+{
+    OpenTMCase(TMCASE_NA, NULL, 0xFF);
+}
+
 void CB2_ShowPartyMenuForItemUse(void)
 {
     MainCallback callback = CB2_ReturnToBagMenu;
@@ -4183,7 +4190,10 @@ void CB2_ShowPartyMenuForItemUse(void)
     else
     {
         if (GetPocketByItemId(gSpecialVar_ItemId) == POCKET_TM_HM)
+        {
             msgId = PARTY_MSG_TEACH_WHICH_MON;
+            callback = CB2_ReturnToTMCaseMenu;
+        }
         else
             msgId = PARTY_MSG_USE_ON_WHICH_MON;
 
@@ -5276,7 +5286,11 @@ void CB2_PartyMenuFromStartMenu(void)
 // As opposted to by selecting Give in the party menu, which is handled by CursorCb_Give
 void CB2_ChooseMonToGiveItem(void)
 {
-    MainCallback callback = (InBattlePyramid() == FALSE) ? CB2_ReturnToBagMenu : CB2_ReturnToPyramidBagMenu;
+    MainCallback callback;
+    if (GetPocketByItemId(gSpecialVar_ItemId) == POCKET_TM_HM)
+        callback = CB2_ReturnToTMCaseMenu;
+    else
+        callback = (InBattlePyramid() == FALSE) ? CB2_ReturnToBagMenu : CB2_ReturnToPyramidBagMenu;
     InitPartyMenu(PARTY_MENU_TYPE_FIELD, PARTY_LAYOUT_SINGLE, PARTY_ACTION_GIVE_ITEM, FALSE, PARTY_MSG_GIVE_TO_WHICH_MON, Task_HandleChooseMonInput, callback);
     gPartyMenu.bagItem = gSpecialVar_ItemId;
 }
