@@ -140,6 +140,7 @@ static void PrepareTMHMMoveWindow(void);
 static bool8 IsWallysBag(void);
 static void Task_WallyTutorialBagMenu(u8);
 static void Task_BagMenu_HandleInput(u8);
+static bool8 IsSecondaryStorageItem(u16);
 static void GetItemName(s8 *, u16);
 static void PrintItemDescription(int);
 static void BagMenu_PrintCursorAtPos(u8, u8);
@@ -396,7 +397,7 @@ static const u8 sFontColorTable[][3] = {
     [COLORID_TMHM_INFO]   = {TEXT_COLOR_TRANSPARENT, TEXT_DYNAMIC_COLOR_5,  TEXT_DYNAMIC_COLOR_1}
 };
 
-static const u8 sTextTMCaseColor[] = _("{COLOR DYNAMIC_COLOR4}");
+static const u8 sTextBlueColor[] = _("{COLOR DYNAMIC_COLOR4}");
 static const u8 sTextRegularColor[] = _("{COLOR WHITE}");
 
 static const struct WindowTemplate sDefaultBagWindows[] =
@@ -907,6 +908,14 @@ static void LoadBagItemListBuffers(u8 pocketId)
     gMultiuseListMenuTemplate.maxShowed = gBagMenu->numShownItems[pocketId];
 }
 
+static bool8 IsSecondaryStorageItem(u16 itemId)
+{
+    if (itemId == ITEM_TM_CASE || itemId == ITEM_BERRY_POUCH)
+        return TRUE;
+
+    return FALSE;
+}
+
 static void GetItemName(s8 *dest, u16 itemId)
 {
     switch (gBagPosition.pocket)
@@ -932,8 +941,8 @@ static void GetItemName(s8 *dest, u16 itemId)
         StringExpandPlaceholders(dest, gText_NumberItem_TMBerry);
         break;
     default:
-        if (itemId == ITEM_TM_CASE)
-            StringCopy(dest, sTextTMCaseColor);
+        if (IsSecondaryStorageItem(itemId))
+            StringCopy(dest, sTextBlueColor);
         else
             StringCopy(dest, sTextRegularColor);
         StringAppend(dest, ItemId_GetName(itemId));

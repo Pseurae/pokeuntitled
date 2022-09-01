@@ -184,7 +184,8 @@ void NewGameInitData(void)
     gSaveBlock1Ptr->registeredItem = 0;
     ClearBag();
     AddBagItem(364, 1);
-    AddBagItem(296, 1);
+    AddBagItem(364, 1);
+    AddBagItem(366, 1);
     NewGameInitPCItems();
     ClearPokeblocks();
     ClearDecorationInventories();

@@ -11,8 +11,8 @@
 #include "window.h"
 #include "blit.h"
 #include "string_util.h"
-
 #include "decompress.h"
+
 #include "graphics.h"
 #include "task.h"
 #include "text_window.h"
@@ -32,6 +32,7 @@
 #include "strings.h"
 #include "list_menu.h"
 #include "tm_case.h"
+
 #include "constants/items.h"
 #include "constants/songs.h"
 #include "constants/rgb.h"
@@ -49,6 +50,7 @@ static const u8 sTMCaseHMIcon_Gfx[] = INCBIN_U8("graphics/tm_case/hm.4bpp");
 static const u16 sTMCaseMainWindowPalette[] = INCBIN_U16("graphics/tm_case/window.gbapal");
 
 static const u8 sText_ClearTo18[] = _("{CLEAR_TO 18}");
+static const u8 sText_Close[] = _("Close");
 
 static EWRAM_DATA struct TMCaseControl sTMCaseStaticResources = {};
 static EWRAM_DATA struct TMCaseData * sTMCaseDynamicResources = NULL;
@@ -57,10 +59,9 @@ static EWRAM_DATA struct ListMenuItem * sListMenuItemsBuffer = NULL;
 static EWRAM_DATA u8 (* sListMenuStringsBuffer)[29] = NULL;
 static EWRAM_DATA u16 * sTMSpritePaletteBuffer = NULL;
 
-static void CB2_SetUpTMCaseUI_Blocking(void);
-static bool8 DoSetUpTMCaseUI(void);
-static void ResetBufferPointers_NoFree(void);
-static void LoadBGTemplates(void);
+static void CB2_InitTMCase(void);
+static bool8 InitTMCase(void);
+static void LoadBgTemplates(void);
 static bool8 HandleLoadTMCaseGraphicsAndPalettes(void);
 static void CreateTMCaseListMenuBuffers(void);
 static void InitTMCaseListMenuItems(void);
@@ -73,8 +74,9 @@ static void CreateTMCaseScrollIndicatorArrowPair_Main(void);
 static void TMCaseSetup_GetTMCount(void);
 static void TMCaseSetup_InitListMenuPositions(void);
 static void TMCaseSetup_UpdateVisualMenuOffset(void);
-static void Task_FadeOutAndCloseTMCase(u8 taskId);
-static void Task_TMCaseMain(u8 taskId);
+static void DestroyTMCaseBuffers(void);
+static void Task_TMCaseFadeOut(u8 taskId);
+static void Task_TMCaseFadeIn(u8 taskId);
 static void Task_SelectTMAction_FromFieldBag(u8 taskId);
 static void Task_TMContextMenu_HandleInput(u8 taskId);
 static void TMHMContextMenuAction_Use(u8 taskId);
@@ -103,7 +105,7 @@ static void AddTextPrinterParameterized_ColorByIndex(u8 windowId, u8 fontId, con
 static void TMCase_SetWindowBorder1(u8 windowId);
 static void TMCase_SetWindowBorder2(u8 windowId);
 static void TMCase_PrintMessageWithFollowupTask(u8 taskId, u8 fontId, const u8 * str, TaskFunc func);
-static void PrintStringTMCaseOnWindow3(void);
+static void PrintTMCaseLabel(void);
 static void DrawMoveInfoUIMarkers(void);
 static void TMCase_MoveCursor_UpdatePrintedTMInfo(u16 itemId);
 static void PlaceHMTileInWindow(u8 windowId, u8 x, u8 y);
@@ -119,7 +121,7 @@ static void InitSelectedTMSpriteData(u8 a0, u16 itemId);
 static void SpriteCB_MoveTMSpriteInCase(struct Sprite *sprite);
 static void LoadTMTypePalettes(void);
 
-static const struct BgTemplate sBGTemplates[] = {
+static const struct BgTemplate sBgTemplates[] = {
     {
         .bg = 0,
         .charBaseIndex = 0,
@@ -384,22 +386,20 @@ static const u16 sTMSpritePaletteOffsetByType[] = {
 
 void OpenTMCase(u8 type, void (* callback)(void), u8 a2)
 {
-    ResetBufferPointers_NoFree();
+    DestroyTMCaseBuffers();
     sTMCaseDynamicResources = Alloc(sizeof(struct TMCaseData));
-    sTMCaseDynamicResources->savedCallback = 0;
+    sTMCaseDynamicResources->savedCallback = NULL;
     sTMCaseDynamicResources->scrollIndicatorArrowPairId = 0xFF;
     sTMCaseDynamicResources->contextMenuWindowId = 0xFF;
-    if (type != 5)
+    if (type != TMCASE_NA)
         sTMCaseStaticResources.tmCaseMenuType = type;
     if (callback != NULL)
         sTMCaseStaticResources.savedCallback = callback;
-    if (a2 != 0xFF)
-        sTMCaseStaticResources.unk_05 = a2;
     gTextFlags.autoScroll = FALSE;
-    SetMainCallback2(CB2_SetUpTMCaseUI_Blocking);
+    SetMainCallback2(CB2_InitTMCase);
 }
 
-static void CB2_Idle(void)
+static void MainCB2(void)
 {
     RunTasks();
     AnimateSprites();
@@ -408,27 +408,27 @@ static void CB2_Idle(void)
     UpdatePaletteFade();
 }
 
-static void VBlankCB_Idle(void)
+static void VBlankCB(void)
 {
     LoadOam();
     ProcessSpriteCopyRequests();
     TransferPlttBuffer();
 }
 
-static void CB2_SetUpTMCaseUI_Blocking(void)
+static void CB2_InitTMCase(void)
 {
     while (1)
     {
         if (IsActiveOverworldLinkBusy() == TRUE)
             break;
-        if (DoSetUpTMCaseUI() == TRUE)
+        if (InitTMCase() == TRUE)
             break;
         if (MenuHelpers_IsLinkActive() == TRUE)
             break;
     }
 }
 
-static bool8 DoSetUpTMCaseUI(void)
+static bool8 InitTMCase(void)
 {
     u8 taskId;
 
@@ -460,7 +460,7 @@ static bool8 DoSetUpTMCaseUI(void)
         gMain.state++;
         break;
     case 6:
-        LoadBGTemplates();
+        LoadBgTemplates();
         sTMCaseDynamicResources->seqId = 0;
         gMain.state++;
         break;
@@ -492,11 +492,11 @@ static bool8 DoSetUpTMCaseUI(void)
         gMain.state++;
         break;
     case 13:
-        PrintStringTMCaseOnWindow3();
+        PrintTMCaseLabel();
         gMain.state++;
         break;
     case 14:
-        taskId = CreateTask(Task_TMCaseMain, 0);
+        taskId = CreateTask(Task_TMCaseFadeIn, 0);
         gTasks[taskId].data[0] = ListMenuInit(&gMultiuseListMenuTemplate, sTMCaseStaticResources.scrollOffset, sTMCaseStaticResources.selectedRow);
         gMain.state++;
         break;
@@ -517,33 +517,22 @@ static bool8 DoSetUpTMCaseUI(void)
         gMain.state++;
         break;
     default:
-        SetVBlankCallback(VBlankCB_Idle);
-        SetMainCallback2(CB2_Idle);
+        SetVBlankCallback(VBlankCB);
+        SetMainCallback2(MainCB2);
         return TRUE;
     }
 
     return FALSE;
 }
 
-static void ResetBufferPointers_NoFree(void)
+static void LoadBgTemplates(void)
 {
-    sTMCaseDynamicResources = NULL;
-    sTilemapBuffer = NULL;
-    sListMenuItemsBuffer = NULL;
-    sListMenuStringsBuffer = NULL;
-    sTMSpritePaletteBuffer = NULL;
-}
-
-static void LoadBGTemplates(void)
-{
-    void ** ptr;
     ResetVramOamAndBgCntRegs();
     ResetAllBgsCoordinates();
-    ptr = &sTilemapBuffer;
-    *ptr = AllocZeroed(0x800);
+    sTilemapBuffer = AllocZeroed(0x800);
     ResetBgsAndClearDma3BusyFlags(0);
-    InitBgsFromTemplates(0, sBGTemplates, NELEMS(sBGTemplates));
-    SetBgTilemapBuffer(2, *ptr);
+    InitBgsFromTemplates(0, sBgTemplates, NELEMS(sBgTemplates));
+    SetBgTilemapBuffer(2, sTilemapBuffer);
     ScheduleBgCopyTilemapToVram(1);
     ScheduleBgCopyTilemapToVram(2);
     SetGpuReg(REG_OFFSET_DISPCNT, DISPCNT_OBJ_1D_MAP | DISPCNT_OBJ_ON);
@@ -600,8 +589,6 @@ static void CreateTMCaseListMenuBuffers(void)
     sListMenuStringsBuffer = Alloc(sTMCaseDynamicResources->numTMs * 29);
 }
 
-static const u8 gText_Close[] = _("Close");
-
 static void InitTMCaseListMenuItems(void)
 {
     struct BagPocket * pocket = &gBagPockets[POCKET_TM_HM - 1];
@@ -613,7 +600,7 @@ static void InitTMCaseListMenuItems(void)
         sListMenuItemsBuffer[i].name = sListMenuStringsBuffer[i];
         sListMenuItemsBuffer[i].id = i;
     }
-    sListMenuItemsBuffer[i].name = gText_Close;
+    sListMenuItemsBuffer[i].name = sText_Close;
     sListMenuItemsBuffer[i].id = -2;
     gMultiuseListMenuTemplate.items = sListMenuItemsBuffer;
     gMultiuseListMenuTemplate.totalItems = sTMCaseDynamicResources->numTMs + 1;
@@ -825,13 +812,13 @@ static void DestroyTMCaseBuffers(void)
     FreeAllWindowBuffers();
 }
 
-static void Task_BeginFadeOutFromTMCase(u8 taskId)
+static void Task_TMCaseStartFadeOut(u8 taskId)
 {
     BeginNormalPaletteFade(PALETTES_ALL, -2, 0, 16, RGB_BLACK);
-    gTasks[taskId].func = Task_FadeOutAndCloseTMCase;
+    gTasks[taskId].func = Task_TMCaseFadeOut;
 }
 
-static void Task_FadeOutAndCloseTMCase(u8 taskId)
+static void Task_TMCaseFadeOut(u8 taskId)
 {
     s16 * data = gTasks[taskId].data;
 
@@ -848,9 +835,9 @@ static void Task_FadeOutAndCloseTMCase(u8 taskId)
     }
 }
 
-static void Task_TMCaseMain(u8 taskId)
+static void Task_TMCaseFadeIn(u8 taskId)
 {
-    s16 * data = gTasks[taskId].data;
+    s16 *data = gTasks[taskId].data;
     s32 input;
 
     if (!gPaletteFade.active)
@@ -859,34 +846,25 @@ static void Task_TMCaseMain(u8 taskId)
         {
             input = ListMenu_ProcessInput(data[0]);
             ListMenuGetScrollAndRow(data[0], &sTMCaseStaticResources.scrollOffset, &sTMCaseStaticResources.selectedRow);
-            if (JOY_NEW(SELECT_BUTTON) && sTMCaseStaticResources.unk_05 == 1)
+            switch (input)
             {
+            case -1:
+                break;
+            case -2:
                 PlaySE(SE_SELECT);
-                gSpecialVar_ItemId = ITEM_NONE;
-                Task_BeginFadeOutFromTMCase(taskId);
-            }
-            else
-            {
-                switch (input)
-                {
-                case -1:
-                    break;
-                case -2:
-                    PlaySE(SE_SELECT);
-                    gSpecialVar_ItemId = 0;
-                    Task_BeginFadeOutFromTMCase(taskId);
-                    break;
-                default:
-                    PlaySE(SE_SELECT);
-                    FillBG2RowWithPalette_2timesNplus1(1);
-                    RemoveTMCaseScrollIndicatorArrowPair();
-                    PrintListMenuCursorByID_WithColorIdx(data[0], 2);
-                    data[1] = input;
-                    data[2] = BagGetQuantityByPocketPosition(POCKET_TM_HM, input);
-                    gSpecialVar_ItemId = BagGetItemIdByPocketPosition(POCKET_TM_HM, input);
-                    gTasks[taskId].func = sSelectTMActionTasks[sTMCaseStaticResources.tmCaseMenuType];
-                    break;
-                }
+                gSpecialVar_ItemId = 0;
+                Task_TMCaseStartFadeOut(taskId);
+                break;
+            default:
+                PlaySE(SE_SELECT);
+                FillBG2RowWithPalette_2timesNplus1(1);
+                RemoveTMCaseScrollIndicatorArrowPair();
+                PrintListMenuCursorByID_WithColorIdx(data[0], 2);
+                data[1] = input;
+                data[2] = BagGetQuantityByPocketPosition(POCKET_TM_HM, input);
+                gSpecialVar_ItemId = BagGetItemIdByPocketPosition(POCKET_TM_HM, input);
+                gTasks[taskId].func = sSelectTMActionTasks[sTMCaseStaticResources.tmCaseMenuType];
+                break;
             }
         }
     }
@@ -896,12 +874,11 @@ static void Subtask_ReturnToTMCaseMain(u8 taskId)
 {
     FillBG2RowWithPalette_2timesNplus1(0);
     CreateTMCaseScrollIndicatorArrowPair_Main();
-    gTasks[taskId].func = Task_TMCaseMain;
+    gTasks[taskId].func = Task_TMCaseFadeIn;
 }
 
 static void Task_SelectTMAction_FromFieldBag(u8 taskId)
 {
-    u8 * strbuf;
     TMCase_SetWindowBorder2(2);
     if (!MenuHelpers_IsLinkActive() && InUnionRoom() != TRUE)
     {
@@ -917,11 +894,9 @@ static void Task_SelectTMAction_FromFieldBag(u8 taskId)
     }
     PrintMenuActionTexts(sTMCaseDynamicResources->contextMenuWindowId, FONT_SHORT, GetMenuCursorDimensionByFont(FONT_SHORT, 0), 2, 0, GetFontAttribute(FONT_SHORT, FONTATTR_MAX_LETTER_HEIGHT) + 2, sTMCaseDynamicResources->numMenuActions, sMenuActions_UseGiveExit, sTMCaseDynamicResources->menuActionIndices);
     InitMenuNormal(sTMCaseDynamicResources->contextMenuWindowId, FONT_SHORT, 0, 2, GetFontAttribute(FONT_SHORT, FONTATTR_MAX_LETTER_HEIGHT) + 2, sTMCaseDynamicResources->numMenuActions, 0);
-    strbuf = Alloc(256);
-    GetTMNumberAndMoveString(strbuf, gSpecialVar_ItemId);
-    StringAppend(strbuf, gText_Var1IsSelected + 2); // +2 skips over the stringvar
-    AddTextPrinterParameterized_ColorByIndex(WIN_MSG, FONT_SHORT, strbuf, 0, 2, 1, 0, 0, 1);
-    Free(strbuf);
+    GetTMNumberAndMoveString(gStringVar4, gSpecialVar_ItemId);
+    StringAppend(gStringVar4, gText_Var1IsSelected + 2); // +2 skips over the stringvar
+    AddTextPrinterParameterized_ColorByIndex(WIN_MSG, FONT_SHORT, gStringVar4, 0, 2, 1, 0, 0, 1);
     if (ItemId_GetImportance(gSpecialVar_ItemId))
     {
         PlaceHMTileInWindow(WIN_MSG, 0, 2);
@@ -971,7 +946,7 @@ static void TMHMContextMenuAction_Use(u8 taskId)
     {
         gItemUseCB = ItemUseCB_TMHM;
         sTMCaseDynamicResources->savedCallback = CB2_ShowPartyMenuForItemUse;
-        Task_BeginFadeOutFromTMCase(taskId);
+        Task_TMCaseStartFadeOut(taskId);
     }
 }
 
@@ -996,7 +971,7 @@ static void TMHMContextMenuAction_Give(u8 taskId)
         else
         {
             sTMCaseDynamicResources->savedCallback = CB2_ChooseMonToGiveItem;
-            Task_BeginFadeOutFromTMCase(taskId);
+            Task_TMCaseStartFadeOut(taskId);
         }
     }
     else
@@ -1067,7 +1042,7 @@ static void Task_SelectTMAction_Type1(u8 taskId)
     if (!ItemId_GetImportance(BagGetItemIdByPocketPosition(POCKET_TM_HM, data[1])))
     {
         sTMCaseDynamicResources->savedCallback = CB2_GiveHoldItem;
-        Task_BeginFadeOutFromTMCase(taskId);
+        Task_TMCaseStartFadeOut(taskId);
     }
     else
     {
@@ -1082,7 +1057,7 @@ static void Task_SelectTMAction_Type3(u8 taskId)
     if (!ItemId_GetImportance(BagGetItemIdByPocketPosition(POCKET_TM_HM, data[1])))
     {
         sTMCaseDynamicResources->savedCallback = CB2_ReturnToPokeStorage;
-        Task_BeginFadeOutFromTMCase(taskId);
+        Task_TMCaseStartFadeOut(taskId);
     }
     else
     {
@@ -1303,7 +1278,7 @@ static void TMCase_PrintMessageWithFollowupTask(u8 taskId, u8 fontId, const u8 *
     ScheduleBgCopyTilemapToVram(1);
 }
 
-static void PrintStringTMCaseOnWindow3(void)
+static void PrintTMCaseLabel(void)
 {
     u32 distance = 72 - GetStringWidth(FONT_NORMAL, gText_TMCase, 0);
     AddTextPrinterParameterized3(WIN_LABEL, FONT_NORMAL, distance / 2, 1, sTextColors[0], 0, gText_TMCase);

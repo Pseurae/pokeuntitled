@@ -5,8 +5,6 @@ struct TMCaseControl
 {
     void (*savedCallback)(void);
     u8 tmCaseMenuType;
-    u8 unk_05;
-    u8 unk_06;
     u16 selectedRow;
     u16 scrollOffset;
 };
@@ -20,10 +18,9 @@ struct TMCaseData
     u8 contextMenuWindowId;
     u8 scrollIndicatorArrowPairId;
     u16 currItem;
-    const u8 * menuActionIndices;
+    const u8 *menuActionIndices;
     u8 numMenuActions;
     s16 seqId;
-    u8 filler_14[8];
 };
 
 enum TMCaseType

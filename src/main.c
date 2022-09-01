@@ -155,7 +155,9 @@ void AgbMain()
 
         PlayTimeCounter_Update();
         MapMusicMain();
-        WaitForVBlank();
+        // WaitForVBlank();
+        gMain.intrCheck &= ~INTR_FLAG_VBLANK;
+        asm("swi #0x5");
     }
 }
 

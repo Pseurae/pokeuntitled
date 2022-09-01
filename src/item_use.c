@@ -32,6 +32,7 @@
 #include "pokemon.h"
 #include "script.h"
 #include "sound.h"
+#include "stats_display.h"
 #include "strings.h"
 #include "string_util.h"
 #include "task.h"
@@ -72,6 +73,9 @@ static void Task_CloseCantUseKeyItemMessage(u8);
 static void SetDistanceOfClosestHiddenItem(u8, s16, s16);
 static void CB2_OpenPokeblockFromBag(void);
 static void CB2_OpenTMCaseFromBag(void);
+static void Task_OpenRegisteredTMCase(u8);
+static void CB2_OpenTeachyTVFromBag(void);
+static void Task_OpenRegisteredTeachyTV(u8);
 
 // EWRAM variables
 EWRAM_DATA static void(*sItemUseOnFieldCB)(u8 taskId) = NULL;
@@ -956,6 +960,21 @@ static void Task_OpenRegisteredTMCase(u8 taskId)
     }
 }
 
+static void CB2_OpenTeachyTVFromBag(void)
+{
+    OpenStatsDisplay(0, CB2_BagMenuFromStartMenu);
+}
+
+static void Task_OpenRegisteredTeachyTV(u8 taskId)
+{
+    if (!gPaletteFade.active)
+    {
+        CleanupOverworldWindowsAndTilemaps();
+        OpenStatsDisplay(0, CB2_ReturnToField);
+        DestroyTask(taskId);
+    }
+}
+
 void ItemUseOutOfBattle_TmCase(u8 taskId)
 {
     if (MenuHelpers_IsLinkActive() == TRUE)
@@ -972,6 +991,25 @@ void ItemUseOutOfBattle_TmCase(u8 taskId)
         gFieldCallback = FieldCB_ReturnToFieldNoScript;
         FadeScreen(FADE_TO_BLACK, 0);
         gTasks[taskId].func = Task_OpenRegisteredTMCase;
+    }
+}
+
+void ItemUseOutOfBattle_TeachyTV(u8 taskId)
+{
+    if (MenuHelpers_IsLinkActive() == TRUE)
+    {
+        DisplayDadsAdviceCannotUseItemMessage(taskId, gTasks[taskId].tUsingRegisteredKeyItem);
+    }
+    else if (gTasks[taskId].tUsingRegisteredKeyItem != TRUE)
+    {
+        gBagMenu->newScreenCallback = CB2_OpenTeachyTVFromBag;
+        Task_FadeAndCloseBagMenu(taskId);
+    }
+    else
+    {
+        gFieldCallback = FieldCB_ReturnToFieldNoScript;
+        FadeScreen(FADE_TO_BLACK, 0);
+        gTasks[taskId].func = Task_OpenRegisteredTeachyTV;
     }
 }
 

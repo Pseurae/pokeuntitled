@@ -4395,7 +4395,7 @@ const struct Item gItems[] =
 
     [ITEM_TEACHY_TV] =
     {
-        .name = _("Teachy Tv"),
+        .name = _("Teachy TV"),
         .itemId = ITEM_TEACHY_TV,
         .price = 0,
         .description = sTeachyTVDesc,
@@ -4403,7 +4403,7 @@ const struct Item gItems[] =
         .registrability = TRUE,
         .pocket = POCKET_KEY_ITEMS,
         .type = ITEM_USE_FIELD,
-        .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
+        .fieldUseFunc = ItemUseOutOfBattle_TeachyTV,
     },
 
     [ITEM_TRI_PASS] =

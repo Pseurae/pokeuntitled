@@ -3,6 +3,9 @@
 
 #include "main.h"
 
+extern const struct CompressedSpriteSheet gSpriteSheet_MoveTypes;
+extern const struct SpriteTemplate gSpriteTemplate_MoveTypes;
+extern const u8 gMoveTypeToOamPaletteNum[];
 extern u8 gLastViewedMonIndex;
 
 extern const u8 *const gMoveDescriptionPointers[];

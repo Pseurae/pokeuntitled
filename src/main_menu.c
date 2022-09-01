@@ -2133,11 +2133,15 @@ static void MainMenu_FormatSavegameText(void)
     MainMenu_FormatSavegameBadges();
 }
 
+#define MENU_CONTINUE_INFO_FONT FONT_SMALL
+#define MENU_CONTINUE_INFO_START_Y 20
+#define MENU_CONTINUE_INFO_SPACING 13
+
 static void MainMenu_FormatSavegamePlayer(void)
 {
     StringExpandPlaceholders(gStringVar4, gText_ContinueMenuPlayer);
-    AddTextPrinterParameterized3(2, FONT_NORMAL, 0, 17, sTextColor_MenuInfo, TEXT_SKIP_DRAW, gStringVar4);
-    AddTextPrinterParameterized3(2, FONT_NORMAL, GetStringRightAlignXOffset(FONT_NORMAL, gSaveBlock2Ptr->playerName, 100), 17, sTextColor_MenuInfo, TEXT_SKIP_DRAW, gSaveBlock2Ptr->playerName);
+    AddTextPrinterParameterized3(2, MENU_CONTINUE_INFO_FONT, 0, MENU_CONTINUE_INFO_START_Y, sTextColor_MenuInfo, TEXT_SKIP_DRAW, gStringVar4);
+    AddTextPrinterParameterized3(2, MENU_CONTINUE_INFO_FONT, GetStringRightAlignXOffset(MENU_CONTINUE_INFO_FONT, gSaveBlock2Ptr->playerName, 100), MENU_CONTINUE_INFO_START_Y, sTextColor_MenuInfo, TEXT_SKIP_DRAW, gSaveBlock2Ptr->playerName);
 }
 
 static void MainMenu_FormatSavegameTime(void)
@@ -2146,11 +2150,11 @@ static void MainMenu_FormatSavegameTime(void)
     u8 *ptr;
 
     StringExpandPlaceholders(gStringVar4, gText_ContinueMenuTime);
-    AddTextPrinterParameterized3(2, FONT_NORMAL, 0x6C, 17, sTextColor_MenuInfo, TEXT_SKIP_DRAW, gStringVar4);
+    AddTextPrinterParameterized3(2, MENU_CONTINUE_INFO_FONT, 0x6C, MENU_CONTINUE_INFO_START_Y, sTextColor_MenuInfo, TEXT_SKIP_DRAW, gStringVar4);
     ptr = ConvertIntToDecimalStringN(str, gSaveBlock2Ptr->playTimeHours, STR_CONV_MODE_LEFT_ALIGN, 3);
     *ptr = 0xF0;
     ConvertIntToDecimalStringN(ptr + 1, gSaveBlock2Ptr->playTimeMinutes, STR_CONV_MODE_LEADING_ZEROS, 2);
-    AddTextPrinterParameterized3(2, FONT_NORMAL, GetStringRightAlignXOffset(FONT_NORMAL, str, 0xD0), 17, sTextColor_MenuInfo, TEXT_SKIP_DRAW, str);
+    AddTextPrinterParameterized3(2, MENU_CONTINUE_INFO_FONT, GetStringRightAlignXOffset(MENU_CONTINUE_INFO_FONT, str, 0xD0), MENU_CONTINUE_INFO_START_Y, sTextColor_MenuInfo, TEXT_SKIP_DRAW, str);
 }
 
 static void MainMenu_FormatSavegamePokedex(void)
@@ -2165,9 +2169,9 @@ static void MainMenu_FormatSavegamePokedex(void)
         else
             dexCount = GetHoennPokedexCount(FLAG_GET_CAUGHT);
         StringExpandPlaceholders(gStringVar4, gText_ContinueMenuPokedex);
-        AddTextPrinterParameterized3(2, FONT_NORMAL, 0, 33, sTextColor_MenuInfo, TEXT_SKIP_DRAW, gStringVar4);
+        AddTextPrinterParameterized3(2, MENU_CONTINUE_INFO_FONT, 0, MENU_CONTINUE_INFO_START_Y + MENU_CONTINUE_INFO_SPACING, sTextColor_MenuInfo, TEXT_SKIP_DRAW, gStringVar4);
         ConvertIntToDecimalStringN(str, dexCount, STR_CONV_MODE_LEFT_ALIGN, 3);
-        AddTextPrinterParameterized3(2, FONT_NORMAL, GetStringRightAlignXOffset(FONT_NORMAL, str, 100), 33, sTextColor_MenuInfo, TEXT_SKIP_DRAW, str);
+        AddTextPrinterParameterized3(2, MENU_CONTINUE_INFO_FONT, GetStringRightAlignXOffset(MENU_CONTINUE_INFO_FONT, str, 100), MENU_CONTINUE_INFO_START_Y + MENU_CONTINUE_INFO_SPACING, sTextColor_MenuInfo, TEXT_SKIP_DRAW, str);
     }
 }
 
@@ -2183,9 +2187,9 @@ static void MainMenu_FormatSavegameBadges(void)
             badgeCount++;
     }
     StringExpandPlaceholders(gStringVar4, gText_ContinueMenuBadges);
-    AddTextPrinterParameterized3(2, FONT_NORMAL, 0x6C, 33, sTextColor_MenuInfo, TEXT_SKIP_DRAW, gStringVar4);
+    AddTextPrinterParameterized3(2, MENU_CONTINUE_INFO_FONT, 0x6C, MENU_CONTINUE_INFO_START_Y + MENU_CONTINUE_INFO_SPACING, sTextColor_MenuInfo, TEXT_SKIP_DRAW, gStringVar4);
     ConvertIntToDecimalStringN(str, badgeCount, STR_CONV_MODE_LEADING_ZEROS, 1);
-    AddTextPrinterParameterized3(2, FONT_NORMAL, GetStringRightAlignXOffset(FONT_NORMAL, str, 0xD0), 33, sTextColor_MenuInfo, TEXT_SKIP_DRAW, str);
+    AddTextPrinterParameterized3(2, MENU_CONTINUE_INFO_FONT, GetStringRightAlignXOffset(MENU_CONTINUE_INFO_FONT, str, 0xD0), MENU_CONTINUE_INFO_START_Y + MENU_CONTINUE_INFO_SPACING, sTextColor_MenuInfo, TEXT_SKIP_DRAW, str);
 }
 
 static void LoadMainMenuWindowFrameTiles(u8 bgId, u16 tileOffset)
